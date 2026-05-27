@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(Dobby)
 enable_language(ASM)
+if(MSVC)
+    enable_language(ASM_MASM)
+endif()
 
 include(cmake/Util.cmake)
 include(cmake/Macros.cmake)
@@ -145,8 +148,6 @@ set(dobby.SOURCE_FILE_LIST ${dobby.SOURCE_FILE_LIST}
   source/TrampolineBridge/ClosureTrampolineBridge/arm64/helper_arm64.cc
   source/TrampolineBridge/ClosureTrampolineBridge/arm64/closure_bridge_arm64.cc
   source/TrampolineBridge/ClosureTrampolineBridge/arm64/ClosureTrampolineARM64.cc
-  source/TrampolineBridge/ClosureTrampolineBridge/arm64/closure_bridge_arm64.asm
-  source/TrampolineBridge/ClosureTrampolineBridge/arm64/closure_trampoline_arm64.asm
   # closure trampoline bridge - x86
   source/TrampolineBridge/ClosureTrampolineBridge/x86/helper_x86.cc
   source/TrampolineBridge/ClosureTrampolineBridge/x86/closure_bridge_x86.cc
@@ -155,8 +156,6 @@ set(dobby.SOURCE_FILE_LIST ${dobby.SOURCE_FILE_LIST}
   source/TrampolineBridge/ClosureTrampolineBridge/x64/helper_x64.cc
   source/TrampolineBridge/ClosureTrampolineBridge/x64/closure_bridge_x64.cc
   source/TrampolineBridge/ClosureTrampolineBridge/x64/ClosureTrampolineX64.cc
-  source/TrampolineBridge/ClosureTrampolineBridge/x64/closure_bridge_x64.asm
-  source/TrampolineBridge/ClosureTrampolineBridge/x64/closure_trampoline_x64.asm
 
   # plugin register
 
@@ -173,6 +172,13 @@ if (SYSTEM.Darwin AND NOT DOBBY_BUILD_KERNEL_MODE)
 
     source/Backend/UserMode/ExecMemory/code-patch-tool-darwin.cc
     source/Backend/UserMode/ExecMemory/clear-cache-tool-all.c
+    
+    # closure trampoline bridge - arm64
+    source/TrampolineBridge/ClosureTrampolineBridge/arm64/closure_bridge_arm64_posix.asm
+    source/TrampolineBridge/ClosureTrampolineBridge/arm64/closure_trampoline_arm64_posix.asm
+    # closure trampoline bridge - x64
+    source/TrampolineBridge/ClosureTrampolineBridge/x64/closure_bridge_x64_posix.asm
+    source/TrampolineBridge/ClosureTrampolineBridge/x64/closure_trampoline_x64_posix.asm
     )
 
 elseif (SYSTEM.Linux OR SYSTEM.Android)
@@ -183,6 +189,13 @@ elseif (SYSTEM.Linux OR SYSTEM.Android)
 
     source/Backend/UserMode/ExecMemory/code-patch-tool-posix.cc
     source/Backend/UserMode/ExecMemory/clear-cache-tool-all.c
+    
+    # closure trampoline bridge - arm64
+    source/TrampolineBridge/ClosureTrampolineBridge/arm64/closure_bridge_arm64_posix.asm
+    source/TrampolineBridge/ClosureTrampolineBridge/arm64/closure_trampoline_arm64_posix.asm
+    # closure trampoline bridge - x64
+    source/TrampolineBridge/ClosureTrampolineBridge/x64/closure_bridge_x64_posix.asm
+    source/TrampolineBridge/ClosureTrampolineBridge/x64/closure_trampoline_x64_posix.asm
     )
 elseif (SYSTEM.Windows)
   set(dobby.SOURCE_FILE_LIST ${dobby.SOURCE_FILE_LIST}
@@ -193,6 +206,19 @@ elseif (SYSTEM.Windows)
     source/Backend/UserMode/ExecMemory/code-patch-tool-windows.cc
     source/Backend/UserMode/ExecMemory/clear-cache-tool-all.c
     )
+    if (PROCESSOR.X86_64 OR PROCESSOR.X86)
+      set(dobby.SOURCE_FILE_LIST ${dobby.SOURCE_FILE_LIST}
+        # closure trampoline bridge - x64
+        source/TrampolineBridge/ClosureTrampolineBridge/x64/closure_bridge_x64_win.asm
+        source/TrampolineBridge/ClosureTrampolineBridge/x64/closure_trampoline_x64_win.asm
+        )
+    else()
+      set(dobby.SOURCE_FILE_LIST ${dobby.SOURCE_FILE_LIST}
+        # closure trampoline bridge - x64
+        source/TrampolineBridge/ClosureTrampolineBridge/x64/closure_bridge_x64_win.asm
+        source/TrampolineBridge/ClosureTrampolineBridge/x64/closure_trampoline_x64_win.asm
+        )
+    endif ()
 endif ()
 
 if (PROCESSOR.X86_64 OR PROCESSOR.X86)
@@ -237,8 +263,10 @@ endif ()
 add_subdirectory(external/logging)
 get_target_property(logging.SOURCE_FILE_LIST logging SOURCES)
 
-# add osbase library
-add_subdirectory(external/osbase)
+# add osbase library (posix only)
+if (NOT SYSTEM.Windows)
+  add_subdirectory(external/osbase)
+endif()
 
 # ---
 

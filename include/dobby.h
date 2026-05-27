@@ -9,6 +9,14 @@ extern "C" {
 #include <stdint.h>
 #include <sys/types.h>
 
+typedef enum {
+  kMemoryOperationSuccess,
+  kMemoryOperationError,
+  kNotSupportAllocateExecutableMemory,
+  kNotEnough,
+  kNone
+} MemoryOperationError;
+
 typedef uintptr_t addr_t;
 typedef uint32_t addr32_t;
 typedef uint64_t addr64_t;
@@ -106,14 +114,14 @@ typedef struct {
 } DobbyRegisterContext;
 #endif
 
-#define install_hook_name(name, fn_ret_t, fn_args_t...)                                                                \
-  static fn_ret_t fake_##name(fn_args_t);                                                                              \
-  static fn_ret_t (*orig_##name)(fn_args_t);                                                                           \
+#define install_hook_name(name, fn_ret_t, ...)                                                                \
+  static fn_ret_t fake_##name(__VA_ARGS__);                                                                              \
+  static fn_ret_t (*orig_##name)(__VA_ARGS__);                                                                           \
   /* __attribute__((constructor)) */ static void install_hook_##name(void *sym_addr) {                                 \
     DobbyHook(sym_addr, (void *)fake_##name, (void **)&orig_##name);                                                   \
     return;                                                                                                            \
   }                                                                                                                    \
-  fn_ret_t fake_##name(fn_args_t)
+  fn_ret_t fake_##name(__VA_ARGS__)
 
 // memory code patch
 int DobbyCodePatch(void *address, uint8_t *buffer, uint32_t buffer_size);

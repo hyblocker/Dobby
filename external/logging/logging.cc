@@ -25,12 +25,13 @@
 #endif
 
 #if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #define PUBLIC
 #else
 #define PUBLIC __attribute__((visibility("default")))
 #define INTERNAL __attribute__((visibility("internal")))
 #endif
-
 #if defined(__ANDROID__)
 #include <android/log.h>
 #endif
@@ -53,6 +54,16 @@ void Logger::logv(LogLevel level, const char *in_fmt, va_list ap) {
   }
 
   if (enable_time_tag_) {
+#if _WIN32
+    SYSTEMTIME st = {};
+    GetLocalTime(&st);
+
+    size_t current_len = strlen(fmt_buffer);
+    if (current_len < sizeof(fmt_buffer)) {
+      snprintf(fmt_buffer + current_len, sizeof(fmt_buffer) - current_len, "%04d-%02d-%02d %02d:%02d:%02d.%03d ",
+               st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+    }
+#else
     struct timeval tv;
     gettimeofday(&tv, NULL);
     time_t now = tv.tv_sec;
@@ -60,6 +71,7 @@ void Logger::logv(LogLevel level, const char *in_fmt, va_list ap) {
     snprintf(fmt_buffer + strlen(fmt_buffer), sizeof(fmt_buffer) - strlen(fmt_buffer),
              "%04d-%02d-%02d %02d:%02d:%02d.%d ", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour,
              tm->tm_min, tm->tm_sec, tv.tv_usec / 1000);
+#endif
   }
 
   snprintf(fmt_buffer + strlen(fmt_buffer), sizeof(fmt_buffer) - strlen(fmt_buffer), "%s\n", in_fmt);

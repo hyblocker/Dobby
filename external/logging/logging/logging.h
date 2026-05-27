@@ -198,9 +198,16 @@ void logger_log_impl(void *logger, LogLevel level, const char *fmt, ...);
 #if defined(NO_FUNC_CALL_TRACE)
 #define __FUNC_CALL_TRACE__()
 #else
+#if defined(__GNUC__)
+#define __LOGGING__FUNC__ __PRETTY_FUNCTION__
+#elif defined(_MSC_VER)
+#define __LOGGING__FUNC__ __FUNCSIG__
+#else
+#define __LOGGING__FUNC__ __FUNCTION__
+#endif
 #define __FUNC_CALL_TRACE__()                                                                                          \
   do {                                                                                                                 \
-    DEBUG_LOG("[+] call -> %s:%d", __PRETTY_FUNCTION__, __LINE__);                                                     \
+    DEBUG_LOG("[+] call -> %s:%d", __LOGGING__FUNC__, __LINE__);                                                     \
   } while (0)
 #endif
 
