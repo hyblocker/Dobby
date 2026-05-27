@@ -261,7 +261,7 @@ endif ()
 
 # add logging library
 add_subdirectory(external/logging)
-get_target_property(logging.SOURCE_FILE_LIST logging SOURCES)
+get_target_property(logging.SOURCE_FILE_LIST dobby_logging SOURCES)
 
 # add osbase library (posix only)
 if (NOT SYSTEM.Windows)
