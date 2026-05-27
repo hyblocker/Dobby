@@ -19,6 +19,8 @@ auto_source_group("." "auto-source-group" "\\.(cc|cpp|c|h)$")
 
 # --- options
 
+option(BUILD_SHARED_LIBS "Enable shared build" ON)
+
 option(DOBBY_DEBUG "Enable debug logging" OFF)
 
 option(NearBranch "Enable near branch trampoline" ON)
@@ -317,6 +319,7 @@ set(SOURCE_FILE_LIST
 get_absolute_path_list(SOURCE_FILE_LIST SOURCE_FILE_LIST_)
 set(SOURCE_FILE_LIST ${SOURCE_FILE_LIST_})
 
+if (BUILD_SHARED_LIBS)
 add_library(dobby SHARED
   ${SOURCE_FILE_LIST}
   )
@@ -324,9 +327,11 @@ add_library(dobby SHARED
 target_include_directories(dobby PUBLIC
   include
   )
+endif()
 
 # ---
 
+if (NOT BUILD_SHARED_LIBS)
 add_library(dobby_static STATIC
   ${SOURCE_FILE_LIST}
   )
@@ -338,27 +343,29 @@ target_include_directories(dobby_static PUBLIC
 set_target_properties(dobby_static
   PROPERTIES OUTPUT_NAME "dobby"
   )
+endif()
 
 # ---
 
+if (BUILD_SHARED_LIBS)
 set_target_properties(dobby
   PROPERTIES
   LINK_FLAGS "${linker_flags}"
   COMPILE_FLAGS "${compiler_flags}"
   )
-
-set_target_properties(dobby_static
-  PROPERTIES
-  COMPILE_FLAGS "${compiler_flags}"
-  )
-
 target_compile_definitions(dobby PRIVATE
   "COMPILE_DEFINITIONS ${compile_definitions}"
   -DBUILD_WITH_TRAMPOLINE_ASM
   )
+else()
+set_target_properties(dobby_static
+  PROPERTIES
+  COMPILE_FLAGS "${compiler_flags}"
+  )
 target_compile_definitions(dobby_static PRIVATE
   "COMPILE_DEFINITIONS ${compile_definitions}"
   )
+endif()
 
 # ---
 
@@ -371,19 +378,24 @@ endif ()
 if (SYSTEM.Android)
   target_link_libraries(dobby log)
   if (PROCESSOR.ARM)
-    set_target_properties(dobby
-      PROPERTIES
-      ANDROID_ARM_MODE arm
-      )
-    set_target_properties(dobby_static
-      PROPERTIES
-      ANDROID_ARM_MODE arm
-      )
+    if (BUILD_SHARED_LIBS)
+      set_target_properties(dobby
+        PROPERTIES
+        ANDROID_ARM_MODE arm
+        )
+    else ()
+      set_target_properties(dobby_static
+        PROPERTIES
+        ANDROID_ARM_MODE arm
+        )
+    endif ()
   endif ()
 endif ()
 
 if (SYSTEM.Linux)
-  target_link_libraries(dobby dl)
+  if (BUILD_SHARED_LIBS)
+    target_link_libraries(dobby dl)
+  endif()
 endif ()
 
 # ---
