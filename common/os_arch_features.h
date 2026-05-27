@@ -6,9 +6,13 @@
 
 #include "PlatformUnifiedInterface/platform.h"
 
-#if defined(__arm64e__) && __has_feature(ptrauth_calls)
-#include <ptrauth.h>
-#endif
+#if defined(__arm64e__)
+    #if defined(__has_feature)
+        #if __has_feature(ptrauth_calls)
+            #include <ptrauth.h>
+        #endif // __has_feature(ptrauth_calls)
+    #endif // defined(__has_feature)
+#endif // defined(__arm64e__)
 
 namespace features {
 

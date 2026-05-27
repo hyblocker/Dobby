@@ -11,6 +11,11 @@ int GetProtectionFromMemoryPermission(MemoryPermission access) {
     return PAGE_EXECUTE_READWRITE;
   else if (kReadExecute == access)
     return PAGE_EXECUTE_READ;
+  else if (kReadWrite == access)
+    return PAGE_READWRITE;
+  else if (kRead == access)
+    return PAGE_READONLY;
+  return PAGE_NOACCESS;
 }
 
 int AllocPageSize() {

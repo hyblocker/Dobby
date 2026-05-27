@@ -73,7 +73,7 @@ struct MemoryAllocator {
     uint8_t *result = nullptr;
     auto allocators = is_exec ? code_page_allocators : data_page_allocators;
     for (auto allocator : allocators) {
-      result = (uint8_t *)allocator->alloc(in_size);
+      result = (uint8_t *)allocator->alloc((uint32_t) in_size);
       if (result)
         break;
     }
@@ -89,7 +89,7 @@ struct MemoryAllocator {
           data_page_allocators.push_back(page_allocator);
       }
       auto allocator = is_exec ? code_page_allocators.back() : data_page_allocators.back();
-      result = (uint8_t *)allocator->alloc(in_size);
+      result = (uint8_t *)allocator->alloc((uint32_t) in_size);
     }
     return MemBlock((addr_t)result, in_size);
   }

@@ -70,7 +70,11 @@ public:
     log_file_stream_ = new std::fstream();
     log_file_stream_->open(log_file_, std::ios::out | std::ios::app);
 #else
-    log_file_stream_ = fopen(log_file_, "a");
+    #if _MSC_VER
+        fopen_s(&log_file_stream_, log_file_, "a");
+    #else
+        log_file_stream_ = fopen(log_file_, "a");
+    #endif
 #endif
   }
 

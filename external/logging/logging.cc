@@ -36,7 +36,9 @@
 #include <android/log.h>
 #endif
 
+#if defined(__clang)
 #pragma clang diagnostic ignored "-Wformat"
+#endif // defined(__clang)
 
 Logger gLogger{};
 Logger *Logger::Shared() {
@@ -132,7 +134,9 @@ void Logger::logv(LogLevel level, const char *in_fmt, va_list ap) {
   }
 }
 
+#if defined(__clang)
 #pragma clang diagnostic warning "-Wformat"
+#endif // defined(__clang)
 
 void *logger_create(const char *tag, const char *file, LogLevel level, bool enable_time_tag, bool enable_syslog) {
   Logger *logger = new Logger(tag, file, level, enable_time_tag, enable_syslog);

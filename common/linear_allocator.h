@@ -47,7 +47,7 @@ struct simple_linear_allocator_t {
 
   uint8_t *alloc(uint32_t in_size, uint32_t in_alignment = 0) {
     auto alignment = in_alignment ? in_alignment : builtin_alignment;
-    uint32_t gap_size = ALIGN_CEIL((uintptr_t)cursor(), alignment) - (uintptr_t)cursor();
+    uint32_t gap_size = (uint32_t) (ALIGN_CEIL((uintptr_t)cursor(), alignment) - (uintptr_t)cursor());
     size += gap_size;
 
     if (size + in_size > capacity) {
@@ -69,6 +69,11 @@ struct simple_linear_allocator_t {
     return buffer + size;
   }
 };
+
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4200)
+#endif
 
 struct linear_allocator_t {
   struct mem_block_t {
@@ -267,6 +272,10 @@ struct linear_allocator_t {
               used_data_size, used_block_count, freed_data_size, freed_block_count);
   }
 };
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 extern simple_linear_allocator_t gSimpleLinearAllocator;
 
